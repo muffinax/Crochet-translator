@@ -7,7 +7,7 @@ export default function GeneratedOutput({ outputText, isLoading }) {
     const handleCopy = () => {
         navigator.clipboard.writeText(outputText);
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000); // Reset copied state after 2 seconds
+        setTimeout(() => setCopied(false), 2000);
     };
 
     if (isLoading) {
@@ -19,17 +19,34 @@ export default function GeneratedOutput({ outputText, isLoading }) {
     }
 
     if (!outputText) {
-        return null; // Don't render anything if there's no output text
+        return null;
     }
 
     return (
         <div className="output-container">
-            <div className="output-header">
-                <h3>Wygenerowana instrukcja:</h3>
+            {isLoading ? (
+                <div className="output-state">
+                <div className="spinner" />
+                <p>Translating pattern...</p>
             </div>
-            <div className="output-text">
-                <pre>{outputText}</pre>
+        ) : outputText ? (
+            <div className="output-content">
+                <div className="output-header">
+                    <h3>Instruction</h3>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={handleCopy}
+                    >{copied ? "Copied!" : "Copy"}
+                    </button>
+                </div>
+                <div className="output-body">
+                    <pre>{outputText}</pre>
+                </div>
             </div>
+        ) : (
+            <div className="output-state">
+                <h4>Instruction will appear here</h4>
+                <p>Upload a pattern image and click "Translate Pattern"</p>
+            </div>
+            )}
         </div>
-  );
+    );
 }

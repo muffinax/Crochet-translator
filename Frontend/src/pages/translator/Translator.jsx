@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import DragDropFiles from "../../components/dragdrop/DragDropFiles";
 import GeneratedOutput from "../../components/generatedoutput/GeneratedOutput";
 import Toast from "../../components/toast/Toast";
@@ -7,16 +7,13 @@ import "./Translator.css";
 
 export default function Translator() {
     const navigate = useNavigate();
-
     const [file, setFile] = useState(null);
     const [outputText, setOutputText] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [toast, setToast] = useState(null);
 
     //soon added logging in
-    const [isLoggedIn, setIsLoggedIn] = useState(true);
-
-    // Toast state
-    const [toast, setToast] = useState(null);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
     const showToast = (message, type = "info") => {
         setToast({ message, type });
@@ -36,6 +33,14 @@ export default function Translator() {
         }, 1500);
     };
 
+    const handleReset = () => {
+        console.log("Resetting translator state");
+
+        setFile(null);
+        setOutputText("");
+        setIsLoading(false);
+    }
+
     const handleSave = () => {
         try {
             console.log("Saving instruction:", outputText);
@@ -44,7 +49,7 @@ export default function Translator() {
             const isSuccess = true;
 
             if (isSuccess) {
-                showToast("Saved instruction!", "success");
+                showToast("Instruction saved!", "success");
             } else {
                 throw new Error("Error while saving");
             }
@@ -54,45 +59,52 @@ export default function Translator() {
     };
 
     return (
-        <div>
-            <h1>Translator</h1>
+        <div className="translator-container">
+            <h1 className="translator-title">Translator</h1>
 
-            {/* Display generated output */}
-            {(isLoading || outputText) && (
-                <GeneratedOutput outputText={outputText} isLoading={isLoading} />
+            <div className="translator-grid">
+                <div className="workspace-col">
+                    <DragDropFiles
+                        file={file}
+                        setFile={setFile}
+                        accepts="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml,image/bmp"
+                    />
+                </div>
+                <div className="workspace-col"></div>
+                    {/* Display generated output */}
+                    <GeneratedOutput outputText={outputText} isLoading={isLoading} />
+                </div>
+
+            {/* Show translate button */}
+            {(file && !outputText && !isLoading) && (
+                <button type="button" className="btn btn-primary" onClick={handleTranslate}>
+                    Translate chart
+                </button>
             )}
 
-            {(isLoading || outputText) && (
+            {(!isLoading && outputText) && (
                 isLoggedIn ? (
-                    <button type ="button" className="save-btn" onClick={handleSave}>
+                    <button type ="button" className="btn btn-primary" onClick={handleSave}>
                         Save instruction
                     </button>
                 ) : (
                     <div className="save-info">
                         If you want to save this information, please{" "}
-                        <button type="button" className="info-btn" onClick={() => navigate("/register")}>
-                            register
-                        </button>
+                        <Link to="/register" className="info-btn">
+                            Register
+                        </Link>
                         {" "}or{" "}
-                        <button type="button" className="info-btn" onClick={() => navigate("/log-in")}>
-                            login
-                        </button>
+                        <Link to="/log-in" className="info-btn">
+                            Log in
+                        </Link>
                         {" "}first.
                     </div>
                 )
             )}
 
-            {/* Display file dropdown */}
-            <DragDropFiles
-                file={file}
-                setFile={setFile}
-                accepts="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml,image/bmp"
-            />
-
-            {/* Show translate button */}
-            {file && (
-                <button type="button" className="translate-btn" onClick={handleTranslate}>
-                    Translate chart
+            {(isLoading || outputText) && (
+                <button type ="button" className="btn btn-primary" onClick={handleReset}>
+                    New translation
                 </button>
             )}
 

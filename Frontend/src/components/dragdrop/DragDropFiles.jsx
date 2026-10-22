@@ -37,7 +37,7 @@ export default function DragDropFiles({ file, setFile, accepts }) {
             alt="Image preview"
             className="preview-image"
           />
-          <button type="button" className="remove-btn" onClick={handleRemove}>
+          <button type="button" className="btn btn-danger" onClick={handleRemove}>
             Change image
           </button>
         </div>
@@ -51,7 +51,7 @@ export default function DragDropFiles({ file, setFile, accepts }) {
               type="file"
               id="upload-files"
             />
-            <div className="upload-btn">Select image</div>
+            <div className="btn btn-primary">Select image</div>
           </label>
         </>
       )}
