@@ -38,9 +38,6 @@ class SymbolDetector:
         results = self.model(frame, conf=min_thresh, verbose=False)
         detections = results[0].boxes
 
-        print(f"{detected_objects[0].type} detected with confidence {detected_objects[0].confidence} at coordinates ({detected_objects[0].xmin}, {detected_objects[0].ymin}), ({detected_objects[0].xmax}, {detected_objects[0].ymax})")
-
-
         detected_objects = []
 
         # Iterate through the detected boxes and create CrochetSymbol instances
@@ -58,5 +55,7 @@ class SymbolDetector:
                 confidence=round(float(conf), 2)
             )
             detected_objects.append(symbol)
+
+            print(f"{symbol.type} detected with confidence {symbol.confidence} at coordinates ({symbol.xmin}, {symbol.ymin}), ({symbol.xmax}, {symbol.ymax})")
         
         return detected_objects
