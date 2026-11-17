@@ -427,3 +427,10 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# AI data
+AI_Service/dataset/
+AI_Service/my_model/
+
+venv/
+.env/

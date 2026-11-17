@@ -1,120 +1,94 @@
 import cv2
+import json
+import sys
 from pathlib import Path
+import numpy as np
 
+# Importy Twoich klas (upewnij się, że ścieżki do modułów są poprawne)
 from symbol_detector import SymbolDetector
-from image_processor import ImageProcessor
+from simple_row_patterns.row_analyzer import RowAnalyzer
 from simple_row_patterns.diagram_analyzer import DiagramAnalyzer
+from instruction_generator import InstructionGenerator
+from crochet_tester import CrochetTester
+
+def process_crochet_diagram(arr: np.ndarray, model_path: str, debug_mode: bool = False) -> dict:
+    """
+    main Pipeline - JSON
+    """
+
+    # 1. Inicjalizacja narzędzi
+    detector = SymbolDetector(model_path=model_path)
+    diagram_analyzer = RowAnalyzer()
+    row_analyzer = DiagramAnalyzer(arr)
+    instruction_generator = InstructionGenerator()
+
+    # 2. Detekcja symboli (YOLO / Computer Vision)
+    detected_symbols = detector.detect_symbols(arr)
+    if not detected_symbols:
+        return {"pattern": [], "message": "No symbols detected."}
+
+    # 3. Przygotowanie danych (Oznaczanie bazy i szukanie powiązań osi Y)
+    base_row, edge_groups = row_analyzer.prepare_base_symbols(detected_symbols)
+    detected_symbols = row_analyzer.locate_symbols(detected_symbols)
+
+    # 4. Budowanie struktury rzędów (Kolejka BFS / Grafy)
+    result_rows = diagram_analyzer.build_rows(detected_symbols, base_row, edge_groups)
+
+    # 5. Generowanie ustrukturyzowanych instrukcji
+    instructions_dict = instruction_generator.generate_instructions(result_rows)
+
+    # 6. (Opcjonalnie) Wizualizacja i debugowanie
+    if debug_mode:
+        tester = CrochetTester(arr, detected_symbols, result_rows, row_analyzer)
+        
+        tester.print_symbol_info()
+        tester.print_row_info()
+        
+        # Rysowanie wszystkich warstw
+        tester.draw_rows()
+        tester.draw_base_symbols()
+        tester.draw_lowest_points()
+        tester.draw_connections()
+        
+        # Zapis i wyświetlanie
+        debug_filepath = str(path_obj.parent / f"debug_{path_obj.name}")
+        tester.save_image(debug_filepath)
+        tester.show_and_wait(f"Debug: {path_obj.name}")
+
+    return instructions_dict
+
 
 if __name__ == "__main__":
-    # 1. Initialization of the modules
-    detector = SymbolDetector(model_path='my_model/my_model.pt')
-    imageprocessor = ImageProcessor()
-    analyzer = DiagramAnalyzer()
+    # Konfiguracja ścieżek
+    MODEL_PATH = 'my_model/my_model.pt'
+    BASE_DIR = Path(r'D:\Projects\Data-AI\Crochet\test-files\basic')
 
-    # Define image path and read image
-    image_path = Path(r'D:\Projects\Data-AI\Crochet\test-files\basic\test-01.png')
-    image = cv2.imread(str(image_path))
-
-    # Preprocess image and detect symbols
-    # arr = imageprocessor.sharpen(image)
-    arr = imageprocessor.enhance_faint_lines(image)
-    detected_symbols = detector.detect_symbols(arr)
-
-    # # Analyze the diagram
-    # # Base row (Row 0) and start side
-    # base_row_symbols = analyzer.find_first_row(detected_symbols)
-    # start_side = analyzer.find_beginning(detected_symbols)
-    
-    # # Turning chains and row counting
-    # rows_data = analyzer.find_rows_by_turning_chains(detected_symbols, base_row_symbols)
-    # row_count = rows_data["row_count"]
-    # row_chains = rows_data["row_chains"]
-
-    # # Getting all rows with proper direction
-    # row_contents = analyzer.extract_row_contents(
-    #     symbols=detected_symbols,
-    #     row_chains=row_chains,
-    #     base_row_symbols=base_row_symbols,
-    #     start_side=start_side
-    # )
-
-    # print(f"Diagram starts on the: {start_side.upper()} side")
-    # print(f"Elements in base row (Row 0): {len(base_row_symbols)}")
-    # for r_idx, content in row_contents.items():
-    #     print(f"Row {r_idx}: found {len(content)} symbols.")
-
-    # VISUALIZATION
-    colors = [(0, 0, 255), (255, 0, 0), (255, 255, 0), (255, 0, 255), (0, 165, 255), (0, 255, 255)]
-
-    type_colors = {}
-    color_index = 0
-
-    for symbol in detected_symbols:
-        if symbol.type not in type_colors:
-            type_colors[symbol.type] = colors[color_index % len(colors)]
-            color_index += 1
-            
-        color = type_colors[symbol.type]
-
-        start_point = (int(symbol.xmin), int(symbol.ymin))
-        end_point = (int(symbol.xmax), int(symbol.ymax))
+    for i in range(1, 14):
+        filename = f'test-{i:02d}.png'
+        img_path = BASE_DIR / filename
         
-        cv2.rectangle(arr, start_point, end_point, color, 2)
+        if not img_path.exists():
+            print(f"Skipping {filename} - file not found.")
+            continue
+            
+        print(f"\n{'='*40}\nProcessing: {filename}\n{'='*40}")
         
-        text_x = int(symbol.xmin)
-        text_y = int(symbol.ymin) - 5
-
-        if text_y < 10: 
-            text_y = int(symbol.ymax) + 15
+        try:
+            # Process with debugging
+            output_json = process_crochet_diagram(
+                image_path=img_path, 
+                model_path=MODEL_PATH, 
+                debug_mode=True
+            )
             
-        cv2.putText(
-            arr, 
-            symbol.type, 
-            (text_x, text_y), 
-            cv2.FONT_HERSHEY_SIMPLEX, 
-            0.4, 
-            color, 
-            1
-        )
-
-    print("Types and their colours (BGR):")
-    for sym_type, col in type_colors.items():
-        print(f"- {sym_type}: {col}")
-
-    # # Draw base row (Row 0) with GREEN rectangles
-    # for symbol in base_row_symbols:
-    #     start_point = (int(symbol.xmin), int(symbol.ymin))
-    #     end_point = (int(symbol.xmax), int(symbol.ymax))
-    #     cv2.rectangle(arr, start_point, end_point, (0, 255, 0), 2)
-        
-    # # Draw all symbols assigned to specific rows
-    # for row_index, symbols_in_row in row_contents.items():
-    #     color = colors[(row_index - 1) % len(colors)] 
-        
-    #     # Iterate over all symbols in the current row
-    #     for i, symbol in enumerate(symbols_in_row):
-    #         start_point = (int(symbol.xmin), int(symbol.ymin))
-    #         end_point = (int(symbol.xmax), int(symbol.ymax))
+            # Saving JSON on a disk
+            json_filename = BASE_DIR / f"instructions_{img_path.stem}.json"
+            with open(json_filename, "w", encoding="utf-8") as f:
+                json.dump(output_json, f, indent=4, ensure_ascii=False)
+                
+            print(f"Successfully saved JSON to: {json_filename}")
             
-    #         # Draw bounding box for the symbol
-    #         cv2.rectangle(arr, start_point, end_point, color, 2)
-            
-    #         # Add text label indicating the order (e.g., "R1: 1", "R1: 2") to verify direction
-    #         text_x = int(symbol.xmin)
-    #         text_y = int(symbol.ymin) - 5
-            
-    #         # Only draw text for the turning chains to avoid visual clutter, 
-    #         # or for all if you want to see the reading order. Let's draw just "R{row_index}" 
-    #         cv2.putText(
-    #             arr, 
-    #             f"R{row_index}", 
-    #             (text_x, text_y), 
-    #             cv2.FONT_HERSHEY_SIMPLEX, 
-    #             0.4, 
-    #             color, 
-    #             1
-    #         )
+        except Exception as e:
+            print(f"Error processing {filename}: {e}", file=sys.stderr)
 
-    cv2.imshow("Diagram Analysis - Full Rows", arr)
-    cv2.waitKey(0)
     cv2.destroyAllWindows()

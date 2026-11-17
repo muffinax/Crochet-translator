@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 from pathlib import Path
 from ultralytics import YOLO
-from crochet_symbol import CrochetSymbol
+from model.crochet_symbol import CrochetSymbol, reset_symbol_ids
 
 class SymbolDetector:
     def __init__(self, model_path: str = 'my_model/my_model.pt'):
@@ -23,6 +23,7 @@ class SymbolDetector:
         :return: Detection results from the YOLO model.
         """
         min_thresh = 0.5  # Minimum confidence threshold for displaying detected objects
+        reset_symbol_ids()  # reset ids
 
         # Check if the input is a file path or a numpy array
         if isinstance(image, (str, Path)):
@@ -51,11 +52,9 @@ class SymbolDetector:
 
             symbol = CrochetSymbol(
                 type=classname, 
-                xmin=int(xmin), ymin=int(ymin), xmax=int(xmax), ymax=int(ymax), 
+                xmin=xmin, ymin=ymin, xmax=xmax, ymax=ymax, 
                 confidence=round(float(conf), 2)
             )
             detected_objects.append(symbol)
-
-            print(f"{symbol.type} detected with confidence {symbol.confidence} at coordinates ({symbol.xmin}, {symbol.ymin}), ({symbol.xmax}, {symbol.ymax})")
-        
+                    
         return detected_objects
