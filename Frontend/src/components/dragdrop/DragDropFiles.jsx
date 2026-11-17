@@ -1,12 +1,13 @@
 import "./dragdrop.css";
 
-export default function DragDropFiles({ file, setFile, accepts }) {
+export default function DragDropFiles({ file, setFile, accepts, isLocked}) {
   const handleDrag = (e) => {
     e.preventDefault();
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
+    if (isLocked) return;
     if (!e.dataTransfer?.files || e.dataTransfer.files.length === 0) return;
     
     // Only the first file is accepted
@@ -37,9 +38,11 @@ export default function DragDropFiles({ file, setFile, accepts }) {
             alt="Image preview"
             className="preview-image"
           />
-          <button type="button" className="btn btn-danger" onClick={handleRemove}>
-            Change image
-          </button>
+          {!isLocked && (
+            <button type="button" className="btn btn-danger" onClick={handleRemove}>
+              Change image
+            </button>
+          )}
         </div>
       ) : (
         <>

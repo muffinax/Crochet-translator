@@ -14,6 +14,16 @@
   --btn-danger-bg-hover: #dc2626;
   --btn-danger-text: #ffffff;
 
+  /* Dodane: Przyciski neutralne (np. Nowe tłumaczenie) */
+  --btn-secondary-bg: #e5e7eb;
+  --btn-secondary-bg-hover: #d1d5db;
+  --btn-secondary-text: #1f2937;
+
+  /* Dodane: Przyciski akcji pozytywnej (np. Zapisz) */
+  --btn-success-bg: #10b981;
+  --btn-success-bg-hover: #059669;
+  --btn-success-text: #ffffff;
+
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.5;
@@ -37,6 +47,15 @@
     --btn-danger-bg: #ef4444;
     --btn-danger-bg-hover: #dc2626;
     --btn-danger-text: #ffffff;
+
+    /* Dodane dla trybu ciemnego */
+    --btn-secondary-bg: #374151;
+    --btn-secondary-bg-hover: #4b5563;
+    --btn-secondary-text: #f9fafb;
+
+    --btn-success-bg: #059669;
+    --btn-success-bg-hover: #047857;
+    --btn-success-text: #ffffff;
   }
 }
 
@@ -88,12 +107,12 @@ p {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   border: none;
   padding: 10px 20px;
   font-size: 16px;
   cursor: pointer;
   border-radius: 4px;
+  transition: background-color 0.2s ease;
 }
 
 .btn:disabled {
@@ -105,7 +124,6 @@ p {
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
 }
-
 .btn-primary:hover:not(:disabled) {
   background-color: var(--btn-primary-bg-hover);
 }
@@ -114,9 +132,25 @@ p {
   background-color: var(--btn-danger-bg);
   color: var(--btn-danger-text);
 }
-
 .btn-danger:hover:not(:disabled) {
   background-color: var(--btn-danger-bg-hover);
+}
+
+/* Dodane klasy przycisków */
+.btn-secondary {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+}
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--btn-secondary-bg-hover);
+}
+
+.btn-success {
+  background-color: var(--btn-success-bg);
+  color: var(--btn-success-text);
+}
+.btn-success:hover:not(:disabled) {
+  background-color: var(--btn-success-bg-hover);
 }
 
 @media (max-width: 768px) {
